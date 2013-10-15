@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+# Usage: dingo deploy [staging] [remote branch name]
+
+application_path = "/var/www/$USER"
+environment = "RAILS_ENV=#{ARGV[1] == 'staging' ? 'staging' : 'production'}"
+
+Dir.chdir(application_path) do
+  system('git checkout db/schema.rb')
+  system('git pull origin master')
+  system('bundle install')
+  system("bundle exec rake #{environment} db:migrate")
+  system("bundle exec rake #{environment} assets:precompile") unless ARGV.first == '--no-assets'
+  system("touch #{application_path}/tmp/restart.txt")
+end
